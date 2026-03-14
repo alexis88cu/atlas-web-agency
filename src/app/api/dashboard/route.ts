@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
 export async function GET() {
-  const [kpisRes, leadsRes, contractsRes, clientsRes] = await Promise.all([
+  const [kpisRes, leadsRes, contractsRes, clientsRes, messagesRes] = await Promise.all([
     db.from('agency_kpis').select('*').single(),
     db.from('leads')
       .select('*')
@@ -18,6 +18,10 @@ export async function GET() {
       .select('*')
       .eq('status', 'active')
       .order('created_at', { ascending: false }),
+    db.from('messages')
+      .select('*, leads(business_name, status, phone)')
+      .order('sent_at', { ascending: false })
+      .limit(100),
   ])
 
   // agent_logs is optional — table may not exist yet
@@ -34,6 +38,7 @@ export async function GET() {
     leads: leadsRes.data ?? [],
     pendingContracts: contractsRes.data ?? [],
     clients: clientsRes.data ?? [],
+    messages: messagesRes.data ?? [],
     logs: logsRes.data ?? [],
     _debug: {
       leadsCount: leadsRes.data?.length ?? 0,

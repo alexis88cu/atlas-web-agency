@@ -46,6 +46,18 @@ interface Client {
   website_url: string | null
 }
 
+interface Message {
+  id: string
+  lead_id: string
+  channel: string
+  direction: string
+  subject: string | null
+  body: string
+  sent_at: string
+  read_at: string | null
+  leads: { business_name: string; status: string; phone: string | null } | null
+}
+
 interface AgentLog {
   id: string
   agent: string
@@ -72,8 +84,10 @@ export default function Dashboard() {
   const [leads, setLeads] = useState<Lead[]>([])
   const [contracts, setContracts] = useState<PendingContract[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [logs, setLogs] = useState<AgentLog[]>([])
-  const [activeTab, setActiveTab] = useState<'pipeline' | 'contracts' | 'clients' | 'activity'>('contracts')
+  const [activeTab, setActiveTab] = useState<'pipeline' | 'contracts' | 'clients' | 'messages' | 'activity'>('contracts')
+  const [msgFilter, setMsgFilter] = useState<'all' | 'inbound' | 'outbound'>('all')
   const [approving, setApproving] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [running, setRunning] = useState(false)
@@ -87,6 +101,7 @@ export default function Dashboard() {
     setLeads(data.leads ?? [])
     setContracts(data.pendingContracts ?? [])
     setClients(data.clients ?? [])
+    setMessages(data.messages ?? [])
     setLogs(data.logs ?? [])
     if (data._debug) setDebugInfo(JSON.stringify(data._debug))
   }
@@ -194,6 +209,7 @@ export default function Dashboard() {
           {[
             { id: 'contracts', label: `Contracts to Approve${contracts.length ? ` (${contracts.length})` : ''}` },
             { id: 'pipeline', label: 'Lead Pipeline' },
+            { id: 'messages', label: `Messages${messages.length ? ` (${messages.length})` : ''}` },
             { id: 'clients', label: `Clients (${clients.length})` },
             { id: 'activity', label: `Activity Log${logs.length ? ` (${logs.length})` : ''}` },
           ].map((tab) => (
@@ -396,6 +412,111 @@ export default function Dashboard() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── MESSAGES TAB ──────────────────────────────────────────────────── */}
+        {activeTab === 'messages' && (
+          <div>
+            {/* Filter buttons */}
+            <div className="flex gap-2 mb-5">
+              {(['all', 'outbound', 'inbound'] as const).map((f) => {
+                const counts = { all: messages.length, outbound: messages.filter(m => m.direction === 'outbound').length, inbound: messages.filter(m => m.direction === 'inbound').length }
+                const labels = { all: `All (${counts.all})`, outbound: `Sent (${counts.outbound})`, inbound: `Received (${counts.inbound})` }
+                return (
+                  <button
+                    key={f}
+                    onClick={() => setMsgFilter(f)}
+                    className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${
+                      msgFilter === f ? 'bg-blue-600 text-white' : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                    }`}
+                  >
+                    {labels[f]}
+                  </button>
+                )
+              })}
+              {messages.filter(m => m.direction === 'inbound' && !m.read_at).length > 0 && (
+                <span className="ml-2 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                  {messages.filter(m => m.direction === 'inbound' && !m.read_at).length} new repl{messages.filter(m => m.direction === 'inbound' && !m.read_at).length > 1 ? 'ies' : 'y'}
+                </span>
+              )}
+            </div>
+
+            {messages.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">
+                <div className="text-4xl mb-3">💬</div>
+                <p>No messages yet.</p>
+                <p className="text-sm mt-1">Messages will appear here once the pipeline starts sending outreach.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-white/10">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10 text-slate-400 text-xs uppercase">
+                      <th className="text-left px-4 py-3">Business</th>
+                      <th className="text-left px-4 py-3">Channel</th>
+                      <th className="text-left px-4 py-3">Direction</th>
+                      <th className="text-left px-4 py-3">Subject / Preview</th>
+                      <th className="text-left px-4 py-3">Lead Status</th>
+                      <th className="text-left px-4 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {messages
+                      .filter(m => msgFilter === 'all' || m.direction === msgFilter)
+                      .map((msg) => (
+                        <tr
+                          key={msg.id}
+                          className={`border-b border-white/5 transition-colors ${
+                            msg.direction === 'inbound'
+                              ? 'bg-yellow-950/20 hover:bg-yellow-950/30'
+                              : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-semibold">{msg.leads?.business_name ?? '—'}</div>
+                            <div className="text-slate-500 text-xs">{msg.leads?.phone ?? ''}</div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                              msg.channel === 'whatsapp'
+                                ? 'bg-green-900 text-green-300'
+                                : 'bg-blue-900 text-blue-300'
+                            }`}>
+                              {msg.channel === 'whatsapp' ? '📱 WhatsApp' : '📧 Email'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                              msg.direction === 'inbound'
+                                ? 'bg-yellow-900 text-yellow-200'
+                                : 'bg-slate-700 text-slate-300'
+                            }`}>
+                              {msg.direction === 'inbound' ? '⬇ Received' : '⬆ Sent'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 max-w-xs">
+                            {msg.subject && (
+                              <div className="text-xs text-slate-400 mb-0.5 font-medium">{msg.subject}</div>
+                            )}
+                            <div className="text-slate-300 text-xs truncate" title={msg.body}>
+                              {msg.body.length > 100 ? msg.body.slice(0, 100) + '…' : msg.body}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded ${STATUS_COLORS[msg.leads?.status ?? ''] ?? 'bg-slate-700 text-slate-300'}`}>
+                              {(msg.leads?.status ?? '—').replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 text-xs whitespace-nowrap">
+                            {new Date(msg.sent_at).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
