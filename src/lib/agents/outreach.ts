@@ -156,9 +156,32 @@ async function sendFollowUp(lead: Lead, attempt: 1 | 2): Promise<void> {
   let body: string
 
   if (attempt === 1) {
-    body = `Hi ${name}, just wanted to make sure you saw the demo I created for ${lead.business_name}:\n👉 ${demoUrl}\n\nHappy to make any changes or answer questions! 😊`
+    body = `Hey ${name}, just making sure this didn't get buried in your messages 😅
+
+Your demo is still live:
+👉 ${demoUrl}
+
+Real talk — every day without a strong online presence, customers searching for ${lead.niche ?? 'your services'} in ${lead.city ?? 'your area'} are finding your competitors instead of you. The ones who DO show up on Google are getting those calls right now.
+
+It takes 10 seconds to look. What do you think? 🙏`
   } else {
-    body = `Last follow-up from me — I know you're busy running your business.\n\nThe demo is still available:\n👉 ${demoUrl}\n\n✅ $250 setup\n✅ $14.99/month (hosting + maintenance)\n✅ Launch in 5–7 days\n\nReach out anytime. 🙌`
+    body = `${name}, last message from me — I promise 🤝
+
+I know you're heads-down running your business and this might not be the right moment. But I'd be doing you a disservice if I didn't send one final follow-up.
+
+Your demo is still here:
+👉 ${demoUrl}
+
+Here's what you'd get for $14.99/month:
+✅ Your business showing up on Google — 24/7
+✅ Customers calling YOU instead of your competitors
+✅ Professional image that builds trust before they even call
+✅ Live in 5–7 days from today — $250 one-time setup, that's it
+
+Most clients recover that $250 in their very first new customer.
+
+If the timing isn't right, no worries at all. When you're ready, I'm here.
+— Alexis | (786) 435-3507`
   }
 
   if (lead.phone) {

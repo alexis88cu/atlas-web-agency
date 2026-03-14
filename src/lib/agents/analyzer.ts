@@ -71,20 +71,34 @@ export async function classifyReply(
   leadName: string,
   niche: string
 ): Promise<{ intent: ReplyIntent; suggestedReply: string }> {
-  const prompt = `You are the reply handler for Atlas Web Agency.
+  const prompt = `You are Alexis, a seasoned sales closer with 20+ years of experience. A lead just replied to our outreach for Atlas Web Agency (we build professional websites for local businesses: $250 setup + $14.99/month).
 
-A lead just replied to our outreach message. Classify their intent and draft a short reply.
+Your job: classify their intent AND write a reply that moves them forward in the sales process.
 
 Lead name: ${leadName}
 Business niche: ${niche}
 Their message: "${message}"
 
-Intent options: interested | not_interested | needs_info | ready_to_buy | spam
+Intent options:
+- interested: they're curious, positive, or asking about the demo
+- not_interested: they said no or not now
+- needs_info: they have objections or want to know price, timeline, what's included
+- ready_to_buy: they want to proceed, asking how to pay or get started
+- spam: irrelevant message
+
+REPLY RULES:
+- If interested: validate their interest + make the next step obvious and easy
+- If needs_info: answer their specific objection with confidence and specifics ($250 setup, $14.99/month, 5-7 days live, includes hosting/SSL/mobile/SEO foundations), then redirect to demo [DEMO_URL]
+- If ready_to_buy: congratulate them, give them the exact next step (pay $250 setup, then send logo/photos/info), make them feel excited
+- If not_interested: be gracious, leave the door open ("no worries at all — if things change, I'm here"), never pushy
+- Always be warm, confident, and direct — never desperate or generic
+- Keep it short: 2-4 sentences max
+- Reference their name and niche when natural
 
 Reply as JSON:
 {
   "intent": "<intent>",
-  "suggested_reply": "<short friendly reply from Alexis, 2-3 sentences max, mentioning demo link as [DEMO_URL]>"
+  "suggested_reply": "<reply from Alexis — warm, confident, moves deal forward>"
 }`
 
   const res = await claude.messages.create({
@@ -109,28 +123,45 @@ export async function generateOutreachCopy(lead: Lead, demoUrl: string): Promise
   emailBody: string
   whatsappBody: string
 }> {
-  const prompt = `You are the Outreach Agent for Atlas Web Agency. Write personalized outreach for this lead.
+  const websiteSituation = lead.website_url
+    ? `Has a website (${lead.website_url}) but it scores ${lead.website_score}/10 — outdated, slow, or not showing up on Google.`
+    : `NO WEBSITE AT ALL — completely invisible online while competitors get all the calls.`
 
-Business: ${lead.business_name}
-Owner: ${lead.owner_name ?? 'there'}
-Niche: ${lead.niche}
-City: ${lead.city}
-Website: ${lead.website_url ?? 'NONE — no website at all'}
-Rating: ${lead.google_rating ?? 'N/A'} stars (${lead.google_reviews ?? 0} reviews)
-Notes: ${lead.notes ?? ''}
-Demo URL: ${demoUrl}
+  const reviewContext = lead.google_rating
+    ? `${lead.google_rating} stars with ${lead.google_reviews ?? 0} Google reviews — good reputation but not capitalizing on it online.`
+    : `No Google reviews data — likely low online visibility.`
 
-Rules:
-- NEVER say "we build websites." ALWAYS say "we already built a demo for your business."
-- Keep it short and personal
-- Reference specific details (rating, city, niche)
-- Tone: friendly, casual, helpful — not salesy
+  const prompt = `You are a world-class sales copywriter with 20+ years closing deals for local businesses. Your specialty is writing outreach that hits the owner's PAIN and immediately shows the VALUE waiting for them.
 
-Respond as JSON only:
+Your job: write the INITIAL outreach message for a local business that gets them to click a demo link and want to learn more.
+
+LEAD CONTEXT:
+- Business: ${lead.business_name}
+- Owner: ${lead.owner_name ?? 'there'}
+- Industry: ${lead.niche}
+- City: ${lead.city}
+- Website situation: ${websiteSituation}
+- Online presence: ${reviewContext}
+- Notes: ${lead.notes ?? 'none'}
+- Demo already built for them: ${demoUrl}
+
+WRITING RULES — follow every single one:
+1. Open the WhatsApp with a SHORT hook that references their real situation — no generic intros
+2. Lead with OUTCOME not features: more calls from Google, customers finding them instead of a competitor, look professional and trustworthy
+3. NEVER say "we build websites" — say "I already built your demo, here it is" — the demo EXISTS
+4. Create mild urgency: while they wait, competitors in ${lead.city} ARE showing up on Google and getting those calls
+5. Numbers build credibility: $250 once, $14.99/month, live in 5-7 days — use them
+6. End with a soft, low-friction CTA: "Take a look — what do you think?" not "Buy now"
+7. WhatsApp tone: direct, warm, like a trusted friend giving them a heads-up — conversational
+8. Email tone: slightly more structured but still punchy — open with a bold question or pain point
+9. Email subject line: specific to their situation, creates curiosity — NOT generic
+10. Use emojis sparingly in WhatsApp (2-3 max), none in email body
+
+RESPOND AS JSON ONLY — no extra text:
 {
-  "email_subject": "<subject line>",
-  "email_body": "<plain text email, 4-6 lines max>",
-  "whatsapp_body": "<whatsapp message, 3-5 lines, use emojis sparingly>"
+  "email_subject": "<subject that creates curiosity and references their specific situation>",
+  "email_body": "<email, 6-8 lines, plain text. Open with a pain-point question. Show value. Include demo URL. End with soft CTA. Sign off as Alexis from Atlas Web Agency with phone (786) 435-3507>",
+  "whatsapp_body": "<WhatsApp message, 4-6 lines. Hook → pain/opportunity → demo URL → value snapshot → CTA. Punchy and conversational.>"
 }`
 
   const res = await claude.messages.create({
