@@ -37,10 +37,11 @@ export async function sendWhatsApp(to: string, body: string): Promise<string | n
 
   const data = await res.json()
   if (!res.ok) {
-    console.error('[WhatsApp] Send failed:', data)
+    console.error('[WhatsApp] Send failed:', JSON.stringify(data))
     return null
   }
 
+  console.log(`[WhatsApp] Sent OK — msg_id: ${data.messages?.[0]?.id}`)
   return data.messages?.[0]?.id ?? null
 }
 
@@ -84,6 +85,24 @@ export async function notifyOwner(message: string): Promise<void> {
 // ─── Send initial outreach to a lead ─────────────────────────────────────────
 
 export async function sendInitialOutreach(lead: Lead): Promise<boolean> {
+  // Guard: check credentials are configured
+  if (!WA_PHONE_ID || !WA_TOKEN) {
+    await log('outreach', 'WhatsApp not configured', `Missing WHATSAPP_PHONE_NUMBER_ID or WHATSAPP_ACCESS_TOKEN in environment variables. Cannot send to ${lead.business_name}.`, { lead_id: lead.id, level: 'error' })
+    console.error('[Outreach] WhatsApp credentials missing — set WHATSAPP_PHONE_NUMBER_ID and WHATSAPP_ACCESS_TOKEN in Vercel env vars')
+  }
+
+  if (!RESEND_KEY) {
+    await log('outreach', 'Resend not configured', `Missing RESEND_API_KEY in environment variables.`, { level: 'error' })
+    console.error('[Outreach] RESEND_API_KEY missing — set it in Vercel env vars')
+  }
+
+  // Guard: must have at least one contact channel
+  if (!lead.phone && !lead.email) {
+    await log('outreach', 'Skipped — no contact info', `${lead.business_name}: no phone or email found. Update the lead manually to retry.`, { lead_id: lead.id, level: 'warning' })
+    console.warn(`[Outreach] Skipping ${lead.business_name} — no phone or email`)
+    return false
+  }
+
   // 1. Generate demo content
   const demo = await generateDemoContent(lead)
   const slug = lead.business_name
@@ -102,32 +121,46 @@ export async function sendInitialOutreach(lead: Lead): Promise<boolean> {
 
   // 3. Send WhatsApp if phone available
   if (lead.phone) {
-    const waId = await sendWhatsApp(lead.phone, copy.whatsappBody)
-    if (waId) {
-      await db.from('messages').insert({
-        lead_id: lead.id,
-        channel: 'whatsapp',
-        direction: 'outbound',
-        body: copy.whatsappBody,
-        wa_msg_id: waId,
-      })
-      sent = true
+    if (WA_PHONE_ID && WA_TOKEN) {
+      const waId = await sendWhatsApp(lead.phone, copy.whatsappBody)
+      if (waId) {
+        await db.from('messages').insert({
+          lead_id: lead.id,
+          channel: 'whatsapp',
+          direction: 'outbound',
+          body: copy.whatsappBody,
+          wa_msg_id: waId,
+        })
+        sent = true
+        await log('outreach', 'WhatsApp sent', `📱 ${lead.business_name} (${lead.phone})`, { lead_id: lead.id, level: 'success' })
+      } else {
+        await log('outreach', 'WhatsApp failed', `❌ Could not send to ${lead.business_name} (${lead.phone}). Check WhatsApp API credentials and that the number is registered in Meta Business.`, { lead_id: lead.id, level: 'error' })
+      }
     }
+  } else {
+    await log('outreach', 'No phone for WhatsApp', `${lead.business_name} — no phone number from Google Places`, { lead_id: lead.id, level: 'warning' })
   }
 
   // 4. Send email if address available
   if (lead.email) {
-    const ok = await sendEmail(lead.email, copy.emailSubject, copy.emailBody)
-    if (ok) {
-      await db.from('messages').insert({
-        lead_id: lead.id,
-        channel: 'email',
-        direction: 'outbound',
-        subject: copy.emailSubject,
-        body: copy.emailBody,
-      })
-      sent = true
+    if (RESEND_KEY) {
+      const ok = await sendEmail(lead.email, copy.emailSubject, copy.emailBody)
+      if (ok) {
+        await db.from('messages').insert({
+          lead_id: lead.id,
+          channel: 'email',
+          direction: 'outbound',
+          subject: copy.emailSubject,
+          body: copy.emailBody,
+        })
+        sent = true
+        await log('outreach', 'Email sent', `📧 ${lead.business_name} (${lead.email})`, { lead_id: lead.id, level: 'success' })
+      } else {
+        await log('outreach', 'Email failed', `❌ Could not send email to ${lead.business_name} (${lead.email}). Check RESEND_API_KEY and domain verification.`, { lead_id: lead.id, level: 'error' })
+      }
     }
+  } else {
+    await log('outreach', 'No email for lead', `${lead.business_name} — email not available (Google Places doesn't provide emails). Add manually or enrich from website.`, { lead_id: lead.id, level: 'warning' })
   }
 
   if (sent) {
@@ -230,6 +263,9 @@ export async function runOutreachAgent(): Promise<{ sent: number; followUps: num
     .eq('status', 'new')
     .gte('lead_score', 7)
     .limit(10)
+
+  const qualifiedCount = (newLeads ?? []).length
+  await log('outreach', `Starting outreach`, `${qualifiedCount} qualified leads (score ≥ 7) ready for outreach`, { level: 'info' })
 
   for (const lead of (newLeads ?? []) as Lead[]) {
     const ok = await sendInitialOutreach(lead)
