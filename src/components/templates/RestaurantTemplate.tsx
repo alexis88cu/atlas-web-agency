@@ -60,6 +60,29 @@ export default function RestaurantTemplate() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-black text-center mb-4">What Our Guests Say</h2>
+        <p className="text-stone-400 text-center mb-12">Loved by locals and visitors alike — every single night.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { name: 'Mike R.', stars: 5, text: 'Best pasta I\'ve had outside of Italy. The carbonara is absolutely perfect. We\'ll be back every week.' },
+            { name: 'Ana C.', stars: 5, text: 'Celebrated my anniversary here and the staff made it unforgettable. Incredible food and such a romantic atmosphere.' },
+            { name: 'David L.', stars: 5, text: 'The wood-fired pizza is a must. We come every Friday and always leave happy — never disappointed.' },
+            { name: 'Sofia M.', stars: 5, text: 'Authentic Italian food in Miami — finally! The tiramisu alone is worth the trip across town.' },
+          ].map(({ name, stars, text }) => (
+            <div key={name} className="p-6 bg-stone-900 border border-stone-800 rounded-2xl flex flex-col gap-3">
+              <div className="flex gap-0.5 text-yellow-400 text-sm">{'★'.repeat(stars)}</div>
+              <p className="text-stone-300 text-sm leading-relaxed">"{text}"</p>
+              <div className="mt-auto pt-3 border-t border-stone-800">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-stone-500 text-xs">Google Review</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-16 px-6 text-center bg-stone-900">
         <h2 className="text-3xl font-black mb-4">Want a website like this?</h2>

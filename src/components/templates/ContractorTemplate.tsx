@@ -74,6 +74,29 @@ export default function ContractorTemplate() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-black text-center mb-4">What Our Clients Say</h2>
+        <p className="text-gray-400 text-center mb-12">Hundreds of happy homeowners across Miami-Dade.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { name: 'Carlos M.', stars: 5, text: 'ProRoof replaced my entire roof after Hurricane Ian. Finished in 2 days and the quality is amazing. Highly recommend!' },
+            { name: 'Sandra L.', stars: 5, text: 'Called Monday, they showed up Tuesday for inspection, and by Friday my roof was done. Professional team, fair price.' },
+            { name: 'Roberto V.', stars: 5, text: 'Best roofing company in Miami. They handled everything with my insurance claim — I didn\'t pay a penny out of pocket.' },
+            { name: 'Jennifer T.', stars: 5, text: 'Used them for 3 rental properties. Every job was clean, on time, and under budget. They\'re my go-to roofers now.' },
+          ].map(({ name, stars, text }) => (
+            <div key={name} className="p-6 bg-gray-900 border border-gray-800 rounded-2xl flex flex-col gap-3">
+              <div className="flex gap-0.5 text-orange-400 text-sm">{'★'.repeat(stars)}</div>
+              <p className="text-gray-300 text-sm leading-relaxed">"{text}"</p>
+              <div className="mt-auto pt-3 border-t border-gray-800">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-gray-500 text-xs">Verified Customer</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="py-16 px-6 text-center bg-gray-900">
         <h2 className="text-3xl font-black mb-4">Ready for a free roof estimate?</h2>

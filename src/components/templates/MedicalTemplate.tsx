@@ -61,6 +61,29 @@ export default function MedicalTemplate() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-black text-center mb-4">Patient Reviews</h2>
+        <p className="text-slate-400 text-center mb-12">Trusted by families across Coral Gables and Miami.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { name: 'Laura B.', stars: 5, text: 'Dr. Rodriguez and her team are wonderful. My teeth whitening results exceeded my expectations by far.' },
+            { name: 'Marcos P.', stars: 5, text: 'Needed emergency care on a Saturday and they were there. Professional, incredibly fast, and completely painless.' },
+            { name: 'Daniela R.', stars: 5, text: 'Been bringing my kids here for 3 years. They actually love going to the dentist now! So patient and gentle.' },
+            { name: 'James K.', stars: 5, text: 'Got Invisalign and achieved my results in 8 months. The whole team guided me through every single step.' },
+          ].map(({ name, stars, text }) => (
+            <div key={name} className="p-6 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3">
+              <div className="flex gap-0.5 text-teal-400 text-sm">{'★'.repeat(stars)}</div>
+              <p className="text-slate-300 text-sm leading-relaxed">"{text}"</p>
+              <div className="mt-auto pt-3 border-t border-slate-800">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-slate-500 text-xs">Verified Patient</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="py-16 px-6 text-center bg-slate-900">
         <h2 className="text-3xl font-black mb-4">Want this website for your practice?</h2>
         <p className="text-slate-400 mb-8">$250 setup + $14.99/month — Atlas Web Agency</p>

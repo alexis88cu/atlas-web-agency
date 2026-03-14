@@ -63,6 +63,29 @@ export default function LocalBusinessTemplate() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-black text-center mb-4">What Our Clients Say</h2>
+        <p className="text-neutral-400 text-center mb-12">The go-to barbershop in Doral — straight from our regulars.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { name: 'Tony M.', stars: 5, text: 'Best fade in Doral, period. Alex always delivers exactly what I ask for. Won\'t go anywhere else.' },
+            { name: 'Chris V.', stars: 5, text: 'Been coming here for 2 years. The hot towel shave is an experience every man needs to try at least once.' },
+            { name: 'Robert D.', stars: 5, text: 'Brought my son for his first real haircut. The barbers were super patient and he absolutely loves his new look.' },
+            { name: 'Miguel A.', stars: 5, text: 'Clean shop, great music, and even better cuts. My whole crew comes here now — nobody leaves disappointed.' },
+          ].map(({ name, stars, text }) => (
+            <div key={name} className="p-6 bg-neutral-900 border border-neutral-800 rounded-2xl flex flex-col gap-3">
+              <div className="flex gap-0.5 text-pink-400 text-sm">{'★'.repeat(stars)}</div>
+              <p className="text-neutral-300 text-sm leading-relaxed">"{text}"</p>
+              <div className="mt-auto pt-3 border-t border-neutral-800">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-neutral-500 text-xs">Google Review</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="py-16 px-6 text-center bg-neutral-900">
         <h2 className="text-3xl font-black mb-4">Want this for your barbershop or salon?</h2>
         <p className="text-neutral-400 mb-8">$250 setup + $14.99/month — Atlas Web Agency</p>

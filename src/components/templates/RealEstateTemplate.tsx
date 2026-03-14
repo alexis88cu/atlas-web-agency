@@ -74,6 +74,29 @@ export default function RealEstateTemplate() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-20 px-6 max-w-6xl mx-auto">
+        <h2 className="text-3xl font-black text-center mb-4">Client Success Stories</h2>
+        <p className="text-zinc-400 text-center mb-12">Buyers and sellers who trusted Maria with their biggest investment.</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { name: 'Patricia G.', stars: 5, text: 'Maria sold our Brickell condo in under 3 weeks at full asking price. She\'s a true professional — absolutely seamless.' },
+            { name: 'Luis H.', stars: 5, text: 'Found our dream home in Coral Gables thanks to Maria. She understood exactly what we needed from day one.' },
+            { name: 'Amanda S.', stars: 5, text: 'As first-time buyers we were nervous. Maria made the entire process stress-free, transparent, and even fun.' },
+            { name: 'Carlos R.', stars: 5, text: 'Maria has closed 3 deals for me over the years. Her market knowledge in Miami is truly unmatched.' },
+          ].map(({ name, stars, text }) => (
+            <div key={name} className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl flex flex-col gap-3">
+              <div className="flex gap-0.5 text-purple-400 text-sm">{'★'.repeat(stars)}</div>
+              <p className="text-zinc-300 text-sm leading-relaxed">"{text}"</p>
+              <div className="mt-auto pt-3 border-t border-zinc-800">
+                <div className="font-semibold text-sm">{name}</div>
+                <div className="text-zinc-500 text-xs">Verified Client</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="py-16 px-6 text-center bg-zinc-900">
         <h2 className="text-3xl font-black mb-4">Want this website for your real estate business?</h2>
         <p className="text-zinc-400 mb-8">$250 setup + $14.99/month — Atlas Web Agency</p>
