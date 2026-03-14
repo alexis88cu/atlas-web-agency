@@ -1,0 +1,17 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/cron/daily",
+      "schedule": "0 13 * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/cron/daily/route.ts": { "maxDuration": 300 },
+    "src/app/api/webhooks/whatsapp/route.ts": { "maxDuration": 30 }
+  }
+}
